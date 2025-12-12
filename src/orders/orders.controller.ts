@@ -1,7 +1,16 @@
-import { Controller, Get, Post, Body, Param, Inject } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Inject,
+  ParseUUIDPipe,
+  Query,
+} from '@nestjs/common';
 import { ORDER_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { CreateOrderDto } from './dto';
+import { CreateOrderDto, OrderPaginationDto } from './dto';
 import { catchError } from 'rxjs';
 
 @Controller('orders')
@@ -16,12 +25,12 @@ export class OrdersController {
   }
 
   @Get()
-  findAll() {
-    return this.ordersClient.send('findAllOrders', {});
+  findAll(@Query() orderPaginationDto: OrderPaginationDto) {
+    return this.ordersClient.send('findAllOrders', orderPaginationDto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordersClient.send('findOneOrder', { id }).pipe(
       catchError((err) => {
         throw new RpcException(err);
